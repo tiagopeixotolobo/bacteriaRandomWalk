@@ -2,7 +2,8 @@ import numpy as np
 import copy
 import random
 import matplotlib.pyplot as plt
-
+import os
+import subprocess
 
 def randomDir(i, j,sx,sy):
     direction = random.randrange(1, 5, 1)
@@ -39,21 +40,35 @@ Aold = np.zeros((sizeGridx, sizeGridy))
 # Initial Conditions
 Aold[50, 50] = 1  # 1 bacteria in the site 5,5
 
-nIterations = 100
+nIterations = 50
 # auxiliar matrix to avoid iterating over new values while not finishing one single loop
 Anew = copy.deepcopy(Aold)
 
-plt.imshow(Anew, extent=[0, 1, 0, 1])
-plt.show()
+files = []
 
-for i in range(1,nIterations):
+fig, ax = plt.subplots(figsize=(5, 5))
+plt.cla()
+plt.imshow(Anew, extent=[0, 1, 0, 1])
+fname = '_tmp%03d.png' % 0
+plt.savefig(fname)
+files.append(fname)
+
+for m in range(1,nIterations):
     for i in range(0, Aold.shape[0]):
         for j in range(0, Aold.shape[1]):
             if Aold[i][j] != 0:
                 (k, n) = randomDir(i, j,sizeGridx,sizeGridy)
                 Anew[k, n] = Aold[k,n] + 1
+    fname = '_tmp%03d.png' % m
+    plt.imshow(Anew, extent=[0, 1, 0, 1])
     Aold = copy.deepcopy(Anew)
+    plt.savefig(fname)
+    files.append(fname)
 
-plt.imshow(Anew, extent=[0, 1, 0, 1])
-plt.show()
+out_movie = "ffmpeg -r 10 -i _tmp%03d.png -r ntsc test.mp4"
+print(out_movie)
+subprocess.call("ffmpeg -r 10 -i _tmp%03d.png -r ntsc"+str(out_movie), shell=True)
 
+
+for fname in files:
+    os.remove(fname)
